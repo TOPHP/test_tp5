@@ -9,10 +9,8 @@ use think\Request;
 
 class Index extends Controller
 {
-
     public function index()
     {
-
         return "hhaaaa";
     }
 
@@ -61,41 +59,91 @@ class Index extends Controller
         return $ret;
     }
 
-    public function show($data)
+    public function show($data, $status = 10000, $msg = "succ", $isDes = true)
     {
 
-        return $this->decryptData(json_encode(array(
+        return $isDes ? $this->decryptData(json_encode(array(
             "curpage" => "1",
-            "status" => "10000",
-            "msg" => "1",
+            "status" => $status,
+            "msg" => $msg,
             "data" => $data,
-        )));
+        ))) : json_encode(array(
+            "curpage" => "1",
+            "status" => $status,
+            "msg" => $msg,
+            "data" => $data,
+        ));
     }
 
     public function sendSms($mobile = 15510002127)//18500314781)
     {
-
         $code = mt_rand(1000, 9999);
-        $code = "9999";
         $AliSMS = new SmsGateWay();
+        $AliSMS->send($mobile, ['code' => $code], 'SMS_76420053');
 
-        $AliSMS->send($mobile, ['code' => $code, 'name' => "张敏", 'time' => "15:30"], 'SMS_67305968');
-
-        if ($AliSMS) {
-            return "发送成功";
-        } else {
-            return "发送失败";
-        }
-        $c = new TopClient;
-        $c->appkey = "appkey";
-        $c->secretKey = "secret";
-        $req = new AlibabaAliqinFcSmsNumSendRequest;
-        $req->setExtend("123456");
-        $req->setSmsType("normal");
-        $req->setSmsFreeSignName("阿里大于");
-        $req->setSmsParam("{\"code\":\"1234\",\"product\":\"alidayu\"}");
-        $req->setRecNum("13000000000");
-        $req->setSmsTemplateCode("SMS_585014");
-        $resp = $c->execute($req);
+//        $code = mt_rand(1000, 9999);
+//        $code = "9999";
+//        $AliSMS = new SmsGateWay();
+//
+//        $AliSMS->send($mobile, ['code' => $code, 'name' => "张敏", 'time' => "15:30"], 'SMS_76420053');
+//
+//        if ($AliSMS) {
+//            return "发送成功";
+//        } else {
+//            return "发送失败";
+//        }
+//        $c = new TopClient;
+//        $c->appkey = "appkey";
+//        $c->secretKey = "secret";
+//        $req = new AlibabaAliqinFcSmsNumSendRequest;
+//        $req->setExtend("123456");
+//        $req->setSmsType("normal");
+//        $req->setSmsFreeSignName("阿里大于");
+//        $req->setSmsParam("{\"code\":\"1234\",\"product\":\"alidayu\"}");
+//        $req->setRecNum("13000000000");
+//        $req->setSmsTemplateCode("SMS_585014");
+//        $resp = $c->execute($req);
     }
+
+    public function login($username, $password)
+    {
+        if (!$username || !$password) {
+            return $this->show("", 400, "用户名或密码不能为空");
+        }
+        if (strcmp($password, "123456")) {
+            return $this->show("");
+        }
+        return $this->show("", 404, "用户名或密码不正确");
+    }
+
+    /**
+     * status 200 有网更新
+     *        300 WiFi下更新
+     *        100 强制更新
+     *        其他不更新
+     * @param int $version
+     * @return string
+     */
+    public function upload($version = 0)
+    {
+        if ($version<3){
+            return;
+        }
+        if ($version > 0) {
+            $status = 200;
+        }
+        return json_encode(array(
+            "status" => $status,
+            "versioncode" => "3",
+            "content" => $this->content("3.0.0","2017-7-28","12.8","这个版本非常好用！"),
+            "url" =>Request::instance()->domain()."/1.apk"
+        ));
+    }
+
+    private function content($vname,  $pdate,$fsize, $desc)
+    {
+        return "\n版本号  ： " . $vname . "\n更新时间  ：" . $pdate . "\n文件大小  ： " . $fsize . "\n\n" . $desc;
+    }
+
+
 }
